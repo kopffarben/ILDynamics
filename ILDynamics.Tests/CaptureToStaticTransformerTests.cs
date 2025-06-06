@@ -133,5 +133,82 @@ namespace ILDynamics.Tests
             // Assert: Value = 3 * 3 = 9
             Assert.AreEqual(9, TestHelper.Value);
         }
+
+        [TestMethod]
+        public void Test_NonCapturingLambda_Passthrough()
+        {
+            // Arrange: create a non capturing lambda x => x * 2
+            Func<int, int> lambda = x => x * 2;
+            MethodInfo originalMethod = lambda.Method;
+
+            // Act
+            MethodInfo transformed = RESOLVER.CopyMethod(originalMethod, new CaptureToStaticTransformer());
+            object result = transformed.Invoke(null, new object[] { 4 });
+
+            // Assert
+            Assert.AreEqual(8, (int)result);
+            Assert.AreEqual(originalMethod.GetParameters().Length, transformed.GetParameters().Length);
+        }
+
+        [TestMethod]
+        public void Test_NonDelegateMethod_Passthrough()
+        {
+            // Arrange: get a normal method that is not a delegate
+            MethodInfo normalMethod = typeof(Math).GetMethod(nameof(Math.Abs), new[] { typeof(int) });
+
+            // Act
+            MethodInfo transformed = RESOLVER.CopyMethod(normalMethod, new CaptureToStaticTransformer());
+            object result = transformed.Invoke(null, new object[] { -7 });
+
+            // Assert
+            Assert.AreEqual(7, (int)result);
+            Assert.AreEqual(normalMethod.GetParameters().Length, transformed.GetParameters().Length);
+        }
+
+        [TestMethod]
+        public void Test_CapturingLambda_MultipleCapturedValues()
+        {
+            // Arrange: lambda capturing two variables
+            int a = 1;
+            int b = 2;
+            Func<int> lambda = () => a + b;
+            MethodInfo originalMethod = lambda.Method;
+
+            MethodInfo transformed = RESOLVER.CopyMethod(originalMethod, new CaptureToStaticTransformer());
+            object result = transformed.Invoke(null, new object[] { a, b });
+
+            // Assert
+            Assert.AreEqual(3, (int)result);
+        }
+
+        [TestMethod]
+        public void Test_CapturingLambda_TwoParameters()
+        {
+            // Arrange: lambda (x, y) => x + y + captured
+            int captured = 5;
+            Func<int, int, int> lambda = (x, y) => x + y + captured;
+            MethodInfo transformed = RESOLVER.CopyMethod(lambda.Method, new CaptureToStaticTransformer());
+
+            // Act
+            object result = transformed.Invoke(null, new object[] { 2, 3, captured });
+
+            // Assert
+            Assert.AreEqual(10, (int)result);
+        }
+
+        [TestMethod]
+        public void Test_CapturingAction_TwoParameters()
+        {
+            // Arrange: Action with two parameters capturing a value
+            int add = 2;
+            Action<int, int> lambda = (x, y) => TestHelper.Value = x + y + add;
+            MethodInfo transformed = RESOLVER.CopyMethod(lambda.Method, new CaptureToStaticTransformer());
+
+            // Act
+            transformed.Invoke(null, new object[] { 3, 4, add });
+
+            // Assert
+            Assert.AreEqual(9, TestHelper.Value);
+        }
     }
 }
