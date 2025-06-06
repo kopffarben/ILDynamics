@@ -26,6 +26,19 @@ namespace ILDynamics.Resolver.Filters
         private FieldInfo _capturedField;
         private int _extraParamIndex;
 
+        public static Type GetCapturedFieldType(MethodInfo info)
+        {
+            var closureType = info.DeclaringType;
+            if (closureType == null || !closureType.Name.Contains("DisplayClass"))
+                return null;
+
+            var fields = closureType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            if (fields.Length != 1)
+                throw new NotSupportedException("Unterstützt nur genau ein erfasstes Feld in der Closure.");
+
+            return fields[0].FieldType;
+        }
+
         public CaptureToStaticTransformer() { }
 
         public CaptureToStaticTransformer(MethodInfo info, ILGenerator il)
@@ -129,30 +142,55 @@ namespace ILDynamics.Resolver.Filters
                     return false;
                 }
 
-                // Wenn originalIndex < Anzahl der ursprünglichen Parameter, bleibt es gleich.
-                // Wenn >, wird nicht unterstützt.
-                if (originalIndex < _extraParamIndex)
-                {
-                    IL.Emit(opcode, (byte)originalIndex);
-                    return true;
-                }
-                else if (originalIndex == _extraParamIndex)
-                {
-                    IL.Emit(opcode, (byte)originalIndex);
-                    return true;
-                }
-                else
-                {
-                    throw new InvalidOperationException("Ungültiger Parameterindex im Apply von CaptureToStaticTransformer.");
-                }
+                int mappedIndex = originalIndex > 0 ? originalIndex - 1 : originalIndex;
+                if (mappedIndex < 0)
+                    throw new InvalidOperationException("Ungültiger Parameterindex.");
+
+                IL.Emit(opcode, (byte)mappedIndex);
+                return true;
             }
 
             // 5. Alle sonstigen IL-Instruktionen unverändert durchreichen, wenn nötig
-            if (operandSize == 4 && (opcode.Equals(OpCodes.Call) || opcode.Equals(OpCodes.Callvirt) || opcode.Equals(OpCodes.Newobj)))
+            if (operandSize == 4)
             {
                 int val = BinaryPrimitives.ReadInt32LittleEndian(operands);
-                var m2 = Info.Module.ResolveMethod(val) as MethodInfo;
-                IL.Emit(opcode, m2);
+
+                if (opcode.Equals(OpCodes.Call) || opcode.Equals(OpCodes.Callvirt) || opcode.Equals(OpCodes.Newobj))
+                {
+                    var m2 = Info.Module.ResolveMethod(val) as MethodInfo;
+                    IL.Emit(opcode, m2);
+                }
+                else if (opcode.OperandType == OperandType.InlineField)
+                {
+                    var f2 = Info.Module.ResolveField(val);
+                    IL.Emit(opcode, f2);
+                }
+                else if (opcode.OperandType == OperandType.InlineType)
+                {
+                    var t2 = Info.Module.ResolveType(val);
+                    IL.Emit(opcode, t2);
+                }
+                else if (opcode.OperandType == OperandType.InlineTok)
+                {
+                    var member = Info.Module.ResolveMember(val);
+                    if (member is FieldInfo fi)
+                        IL.Emit(opcode, fi);
+                    else if (member is MethodInfo mi)
+                        IL.Emit(opcode, mi);
+                    else if (member is Type ti)
+                        IL.Emit(opcode, ti);
+                    else
+                        IL.Emit(opcode, val);
+                }
+                else if (opcode.OperandType == OperandType.InlineString)
+                {
+                    var str = Info.Module.ResolveString(val);
+                    IL.Emit(opcode, str);
+                }
+                else
+                {
+                    IL.Emit(opcode, val);
+                }
                 return true;
             }
             else if (operandSize == 2)

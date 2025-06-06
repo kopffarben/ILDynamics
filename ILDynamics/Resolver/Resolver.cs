@@ -63,6 +63,19 @@ namespace ILDynamics.Resolver
             for (int i = 0; i < args.Length; i++)
                 args[i] = argsofm[i].ParameterType;
 
+            if (filters != null)
+            {
+                foreach (var f in filters)
+                {
+                    if (f is Filters.CaptureToStaticTransformer)
+                    {
+                        var extra = Filters.CaptureToStaticTransformer.GetCapturedFieldType(m);
+                        if (extra != null)
+                            args = args.Concat(new[] { extra }).ToArray();
+                    }
+                }
+            }
+
             MethodBuilder factory = demoType.DefineMethod("DynamicMethod",
                 MethodAttributes.Public | MethodAttributes.Static,
                 m.ReturnType,
