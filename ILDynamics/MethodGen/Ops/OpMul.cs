@@ -7,14 +7,24 @@ using System.Threading.Tasks;
 
 namespace ILDynamics.MethodGen.Ops
 {
+    /// <summary>
+    /// Multiplies values.
+    /// </summary>
     public class OpMul : ILOp
     {
         public ILOp[] Values;
+        /// <summary>
+        /// Initializes a multiplication operation for the given operands.
+        /// </summary>
+        /// <param name="values">Values to multiply.</param>
         public OpMul(params ILOp[] values)
         {
             this.Values = values;
         }
 
+        /// <summary>
+        /// Emits IL that multiplies all operands together.
+        /// </summary>
         public override void Load(Method Method)
         {
             Values[0].Load(Method);
@@ -27,6 +37,9 @@ namespace ILDynamics.MethodGen.Ops
             }
         }
 
+        /// <summary>
+        /// Multiplication results cannot be stored directly.
+        /// </summary>
         public override void Store(Method Method)
         {
             throw new NotImplementedException();

@@ -6,6 +6,9 @@ using RESOLVER = ILDynamics.Resolver.Resolver;
 
 namespace ILDynamics.Tests
 {
+    /// <summary>
+    /// Tests for capturing-to-static transformation.
+    /// </summary>
     public static class TestHelper
     {
         public static int Value;
@@ -15,12 +18,18 @@ namespace ILDynamics.Tests
     public class CaptureToStaticTransformerTests
     {
         [TestInitialize]
+        /// <summary>
+        /// Resets shared state before each test.
+        /// </summary>
         public void TestInitialize()
         {
             TestHelper.Value = 0;
         }
 
         [TestMethod]
+        /// <summary>
+        /// Verifies captured parameters are turned into explicit arguments.
+        /// </summary>
         public void Test_CapturingLambda_WithOneParameter()
         {
             // Arrange: Create a capturing lambda x => x + captured
@@ -28,7 +37,7 @@ namespace ILDynamics.Tests
             Func<int, int> lambda = x => x + capturedValue;
             MethodInfo originalMethod = lambda.Method;
 
-            
+
 
             // Act: Copy the method with the transformer filter
             MethodInfo transformed = RESOLVER.CopyMethod(originalMethod, new CaptureToStaticTransformer());
@@ -41,6 +50,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Tests a capturing lambda with no original parameters.
+        /// </summary>
         public void Test_CapturingLambda_NoParameters()
         {
             // Arrange: Create a capturing lambda () => captured * 2
@@ -59,6 +71,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Ensures returning a captured value still works.
+        /// </summary>
         public void Test_CapturingLambda_ReturnCapturedOnly()
         {
             // Arrange: Create a capturing lambda () => captured
@@ -77,6 +92,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Confirms delegates built from transformed methods behave identically.
+        /// </summary>
         public void Test_DelegateInvocation_PreservedLogic()
         {
             // Arrange: Create a capturing lambda (int x) => x * captured - 3
@@ -99,6 +117,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Verifies captured values are forwarded for an Action with parameters.
+        /// </summary>
         public void Test_CapturingAction_WithOneParameter()
         {
             // Arrange: Create a capturing Action<int> x => TestHelper.Value = x + captured
@@ -117,6 +138,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Tests Actions without parameters that capture a value.
+        /// </summary>
         public void Test_CapturingAction_NoParameters()
         {
             // Arrange: Create a capturing Action () => TestHelper.Value = captured * 3
@@ -135,6 +159,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Non-capturing lambdas should be unaffected by the transformer.
+        /// </summary>
         public void Test_NonCapturingLambda_Passthrough()
         {
             // Arrange: create a non capturing lambda x => x * 2
@@ -151,6 +178,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Normal methods that are not delegates should remain unchanged.
+        /// </summary>
         public void Test_NonDelegateMethod_Passthrough()
         {
             // Arrange: get a normal method that is not a delegate
@@ -166,6 +196,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Handles lambdas capturing multiple values.
+        /// </summary>
         public void Test_CapturingLambda_MultipleCapturedValues()
         {
             // Arrange: lambda capturing two variables
@@ -182,6 +215,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Ensures lambda with two parameters and a capture works.
+        /// </summary>
         public void Test_CapturingLambda_TwoParameters()
         {
             // Arrange: lambda (x, y) => x + y + captured
@@ -197,6 +233,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Tests actions with two parameters and a capture.
+        /// </summary>
         public void Test_CapturingAction_TwoParameters()
         {
             // Arrange: Action with two parameters capturing a value

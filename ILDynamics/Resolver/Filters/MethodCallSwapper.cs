@@ -9,11 +9,17 @@ using System.Threading.Tasks;
 
 namespace ILDynamics.Resolver.Filters
 {
+    /// <summary>
+    /// Filter that swaps method call targets.
+    /// </summary>
     public class MethodCallSwapper : Filter
     {
         public Dictionary<int, MethodInfo> SwapDict;
         private List<KeyValuePair<MethodInfo, MethodInfo>> TempList;
 
+        /// <summary>
+        /// Initializes the swapper and immediately associates it with a method.
+        /// </summary>
         public MethodCallSwapper(MethodInfo info, ILGenerator il)
         {
             SwapDict = new Dictionary<int, MethodInfo>();
@@ -21,12 +27,18 @@ namespace ILDynamics.Resolver.Filters
             this.Initialize(info, il);
         }
 
+        /// <summary>
+        /// Default constructor for later initialization.
+        /// </summary>
         public MethodCallSwapper()
         {
             SwapDict = new Dictionary<int, MethodInfo>();
             TempList = new List<KeyValuePair<MethodInfo, MethodInfo>>();
         }
 
+        /// <summary>
+        /// Prepares the swapper with the given method context.
+        /// </summary>
         public override void Initialize(MethodInfo info, ILGenerator il)
         {
             base.Initialize(info, il);
@@ -37,6 +49,9 @@ namespace ILDynamics.Resolver.Filters
             TempList.Clear();
         }
 
+        /// <summary>
+        /// Registers a method call to be swapped with another target.
+        /// </summary>
         public void AddSwap(MethodInfo a, MethodInfo b)
         {
             if (Initialized)
@@ -54,6 +69,9 @@ namespace ILDynamics.Resolver.Filters
             }
         }
 
+        /// <summary>
+        /// Replaces call instructions if they target a swapped method.
+        /// </summary>
         public override bool Apply(OpCode code, int operandsize, Span<byte> operands)
         {
             if (operandsize == 4 && (code.Equals(OpCodes.Call) || code.Equals(OpCodes.Callvirt) || code.Equals(OpCodes.Newobj)))

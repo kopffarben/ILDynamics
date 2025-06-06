@@ -10,8 +10,15 @@ using System.Threading.Tasks;
 
 namespace ILDynamics.MethodGen.IL
 {
+    /// <summary>
+    /// Utility methods for working with IL opcodes.
+    /// </summary>
     public static partial class ILHelper
     {
+        /// <summary>
+        /// Retrieves the <see cref="OpCode"/> with the specified numeric value.
+        /// </summary>
+        /// <param name="val">Opcode value.</param>
         public static OpCode GetOpCodeByValue(short val)
         {
             FieldInfo[] fields = typeof(OpCodes).GetFields();
@@ -27,6 +34,11 @@ namespace ILDynamics.MethodGen.IL
             throw new Exception("Not Found!");
         }
 
+        /// <summary>
+        /// Parses an opcode from a byte span and updates the offset.
+        /// </summary>
+        /// <param name="arr">Byte sequence containing IL.</param>
+        /// <param name="newoffset">Offset advanced past the opcode.</param>
         public static OpCode GetOpCode(Span<byte> arr, ref int newoffset)
         {
             if (arr[0] >= 248)
@@ -46,6 +58,11 @@ namespace ILDynamics.MethodGen.IL
         }
 
         //todo need all primitives
+        /// <summary>
+        /// Emits IL to load a value by reference of the given type.
+        /// </summary>
+        /// <param name="codes">Opcode stream.</param>
+        /// <param name="t">Referenced type.</param>
         public static void LoadValueByRef(ILOpCodes codes, Type t)
         {
             if (t == typeof(short))
@@ -65,6 +82,11 @@ namespace ILDynamics.MethodGen.IL
         }
 
         //todo need all primitives
+        /// <summary>
+        /// Emits IL to store a value by reference of the given type.
+        /// </summary>
+        /// <param name="codes">Opcode stream.</param>
+        /// <param name="t">Referenced type.</param>
         public static void StoreValueByRef(ILOpCodes codes, Type t)
         {
             if (t == typeof(short))
@@ -84,6 +106,12 @@ namespace ILDynamics.MethodGen.IL
         }
 
         //todo need all primitives
+        /// <summary>
+        /// Emits IL to load a constant value.
+        /// </summary>
+        /// <typeparam name="T">Constant type.</typeparam>
+        /// <param name="codes">Opcode stream.</param>
+        /// <param name="val">Constant value.</param>
         public static void LoadConstant<T>(ILOpCodes codes, T val)
         {
             //if (typeof(T) == typeof(short))

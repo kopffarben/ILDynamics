@@ -6,10 +6,16 @@ using static ILDynamics.MethodGen.F;
 
 namespace ILDynamics.Tests
 {
+    /// <summary>
+    /// Tests for dynamic method generation.
+    /// </summary>
     [TestClass]
     public class MethodGeneration
     {
         [TestMethod]
+        /// <summary>
+        /// Generates a simple addition method and verifies the result.
+        /// </summary>
         public void TestAdd1()
         {
             Method<int> f = new Method<int>();
@@ -27,6 +33,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Tests addition when all values are constants.
+        /// </summary>
         public void TestAdd2()
         {
             Method<int> f = new Method<int>();
@@ -45,6 +54,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Verifies subtraction of constants.
+        /// </summary>
         public void TestSub1()
         {
             Method<int> f = new Method<int>();
@@ -57,6 +69,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Tests nested subtraction operations.
+        /// </summary>
         public void TestSub2()
         {
             Method<int> f = new Method<int>();
@@ -69,6 +84,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Checks passing references to a variable.
+        /// </summary>
         public void TestRef()
         {
             Method<int> f = new Method<int>();
@@ -86,6 +104,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Tests reference operations with additional variables.
+        /// </summary>
         public void TestRefOp()
         {
             Method<int> f = new Method<int>();
@@ -110,6 +131,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Ensures method call operations work correctly.
+        /// </summary>
         public void TestOpCall1()
         {
             Method<string> f = new Method<string>();
@@ -122,6 +146,9 @@ namespace ILDynamics.Tests
         }
 
         public static int experiment1 = 5;
+        /// <summary>
+        /// Helper method used for dynamic call tests.
+        /// </summary>
         public static void Method1(int x)
         {
             Console.WriteLine(x);
@@ -129,6 +156,9 @@ namespace ILDynamics.Tests
         }
 
         [TestMethod]
+        /// <summary>
+        /// Verifies calling a dynamic method without return value.
+        /// </summary>
         public void TestOpCall2()
         {
             Method f = new Method(null);

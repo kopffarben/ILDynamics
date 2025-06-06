@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace ILDynamics.Compute
 {
+    /// <summary>
+    /// Example entry program for compute library.
+    /// </summary>
     class Program
     {
         static void Main(string[] args)

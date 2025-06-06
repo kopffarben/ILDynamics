@@ -7,11 +7,17 @@ using System.Threading.Tasks;
 
 namespace ILDynamics.MethodGen.Ops
 {
+    /// <summary>
+    /// IL operation that assigns a value by reference.
+    /// </summary>
     public class OpRefAssign : ILOp
     {
         public RefVar Assignee;
         public ILOp Assigned;
 
+        /// <summary>
+        /// Creates an assignment that stores <paramref name="b"/> into <paramref name="a"/> by reference.
+        /// </summary>
         public OpRefAssign(RefVar a, ILOp b)
         {
             this.Assignee = a;
@@ -20,6 +26,9 @@ namespace ILDynamics.MethodGen.Ops
             // a is the assignee
         }
 
+        /// <summary>
+        /// Emits IL to assign the referenced value.
+        /// </summary>
         public override void Load(Method Method)
         {
             Assignee.Load(Method);
@@ -27,6 +36,9 @@ namespace ILDynamics.MethodGen.Ops
             ILHelper.StoreValueByRef(Method.OpCodes, Assignee.VarType);
         }
 
+        /// <summary>
+        /// Reference assignments cannot be stored directly.
+        /// </summary>
         public override void Store(Method m)
         {
             throw new NotImplementedException();

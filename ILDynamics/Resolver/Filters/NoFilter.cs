@@ -10,18 +10,30 @@ using System.Threading.Tasks;
 
 namespace ILDynamics.Resolver.Filters
 {
+    /// <summary>
+    /// Pass-through filter used when no transformation is needed.
+    /// </summary>
 
     public class NoFilter : Filter
     {
+        /// <summary>
+        /// Creates the filter and immediately initializes it.
+        /// </summary>
         public NoFilter(MethodInfo info, ILGenerator il)
         {
             this.Initialize(info, il);
         }
 
+        /// <summary>
+        /// Parameterless constructor for deferred initialization.
+        /// </summary>
         public NoFilter()
         {
         }
 
+        /// <summary>
+        /// Emits the given opcode without modification.
+        /// </summary>
         public override bool Apply(OpCode code, int operandsize, Span<byte> operands)
         {
             if (operandsize == 4)
