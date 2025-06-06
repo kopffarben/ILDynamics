@@ -23,20 +23,18 @@ namespace ILDynamics.Resolver.Filters
     /// </summary>
     public class CaptureToStaticTransformer : Filter
     {
-        private FieldInfo _capturedField;
-        private int _extraParamIndex;
+        private FieldInfo[] _capturedFields = Array.Empty<FieldInfo>();
+        private int _extraParamStartIndex;
+        private bool _removeInstanceArg;
 
-        public static Type GetCapturedFieldType(MethodInfo info)
+        public static Type[] GetCapturedFieldTypes(MethodInfo info)
         {
             var closureType = info.DeclaringType;
             if (closureType == null || !closureType.Name.Contains("DisplayClass"))
-                return null;
+                return Array.Empty<Type>();
 
             var fields = closureType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            if (fields.Length != 1)
-                throw new NotSupportedException("Unterstützt nur genau ein erfasstes Feld in der Closure.");
-
-            return fields[0].FieldType;
+            return fields.Select(f => f.FieldType).ToArray();
         }
 
         public CaptureToStaticTransformer() { }
@@ -49,25 +47,26 @@ namespace ILDynamics.Resolver.Filters
         public override void Initialize(MethodInfo info, ILGenerator il)
         {
             base.Initialize(info, il);
-            // Info.DeclaringType ist die DisplayClass (Closure)
+
             var closureType = Info.DeclaringType;
-            if (closureType == null || !closureType.Name.Contains("DisplayClass"))
-                throw new InvalidOperationException("Die Methode gehört nicht zu einer Closure DisplayClass.");
+            if (closureType != null && closureType.Name.Contains("DisplayClass"))
+            {
+                _capturedFields = closureType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            }
+            else
+            {
+                _capturedFields = Array.Empty<FieldInfo>();
+            }
 
-            var fields = closureType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            if (fields.Length != 1)
-                throw new NotSupportedException("Unterstützt nur genau ein erfasstes Feld in der Closure.");
-            _capturedField = fields[0];
+            _removeInstanceArg = !Info.IsStatic;
 
-            // In der dynamischen Methode wird erwartet, dass der letzte Parameter der capturedField-Typ ist.
-            // Info.GetParameters() enthält nur Parameter der Lambda-Logik (ohne this und ohne capturedField).
-            _extraParamIndex = Info.GetParameters().Length; // null-basierter Index
+            _extraParamStartIndex = Info.GetParameters().Length;
         }
 
         public override bool Apply(OpCode opcode, int operandSize, Span<byte> operands)
         {
             // 1. Überspringe ldarg.0 (Instance-Zugriff auf closure 'this')
-            if (opcode.Equals(OpCodes.Ldarg_0) && operandSize == 0)
+            if (_removeInstanceArg && opcode.Equals(OpCodes.Ldarg_0) && operandSize == 0)
             {
                 // Keinen Emit durchführen, einfach überspringen.
                 return true;
@@ -78,21 +77,24 @@ namespace ILDynamics.Resolver.Filters
             {
                 int token = BinaryPrimitives.ReadInt32LittleEndian(operands);
                 var field = Info.Module.ResolveField(token);
-                if (field != null && field.MetadataToken == _capturedField.MetadataToken)
+                if (field != null)
                 {
-                    // Emit: Ldarg für den letzten Parameter (_extraParamIndex)
-                    EmitLoadArg(_extraParamIndex);
-                    return true;
+                    int idx = Array.FindIndex(_capturedFields, f => f.MetadataToken == field.MetadataToken);
+                    if (idx >= 0)
+                    {
+                        EmitLoadArg(_extraParamStartIndex + idx);
+                        return true;
+                    }
                 }
             }
 
             // 3. Ersetze Delegate-Erzeugung (newobj DisplayClass::.ctor -> ldloc DisplayClassInstanz -> ldftn -> newobj Func<>)
             //    Wir erkennen ldftn auf die Closure-Instanzmethode und modifizieren sequenziell.
-            if ((opcode.Equals(OpCodes.Ldftn) || opcode.Equals(OpCodes.Ldvirtftn)) && operandSize == 4)
+            if (_capturedFields.Length > 0 && (opcode.Equals(OpCodes.Ldftn) || opcode.Equals(OpCodes.Ldvirtftn)) && operandSize == 4)
             {
                 int token = BinaryPrimitives.ReadInt32LittleEndian(operands);
                 var method = Info.Module.ResolveMethod(token) as MethodInfo;
-                if (method != null && method.DeclaringType == _capturedField.DeclaringType)
+                if (method != null && method.DeclaringType == _capturedFields[0].DeclaringType)
                 {
                     // Wir müssen die folgenden Instruktionen neu schreiben:
                     // (a) ldloc ClosureInstanz           -> wird beibehalten, um captured-Instanz zu laden,
@@ -103,7 +105,7 @@ namespace ILDynamics.Resolver.Filters
                     // 3a. Emit ldnull als Target für static method delegate
                     IL.Emit(OpCodes.Ldnull);
                     // 3b. Emit ldftn auf die neue Static-Methode. Wir nehmen an, sie hat denselben Namen + "_Static".
-                    var parentType = _capturedField.DeclaringType.DeclaringType;
+                    var parentType = _capturedFields[0].DeclaringType.DeclaringType;
                     var newMethodName = method.Name + "_Static";
                     var newMethod = parentType.GetMethod(newMethodName, BindingFlags.NonPublic | BindingFlags.Static);
                     if (newMethod == null)
@@ -119,6 +121,7 @@ namespace ILDynamics.Resolver.Filters
             {
                 // Konvertiere und indexiere um
                 int originalIndex;
+                OpCode originalOp = opcode;
                 if (ILHelper.IsArgNotS(opcode))
                 {
                     (OpCode code2, int val) = ILHelper.ConvertToS(opcode);
@@ -142,11 +145,40 @@ namespace ILDynamics.Resolver.Filters
                     return false;
                 }
 
-                int mappedIndex = originalIndex > 0 ? originalIndex - 1 : originalIndex;
-                if (mappedIndex < 0)
-                    throw new InvalidOperationException("Ungültiger Parameterindex.");
+                int mappedIndex = originalIndex;
+                if (_removeInstanceArg && originalIndex > 0)
+                    mappedIndex = originalIndex - 1;
 
-                IL.Emit(opcode, (byte)mappedIndex);
+                if (mappedIndex == originalIndex && !_removeInstanceArg)
+                {
+                    // emit original instruction unchanged
+                    if (ILHelper.IsArgNotS(originalOp))
+                    {
+                        IL.Emit(originalOp);
+                    }
+                    else if (operandSize == 4)
+                    {
+                        IL.Emit(originalOp, originalIndex);
+                    }
+                    else if (operandSize == 2)
+                    {
+                        IL.Emit(originalOp, (short)originalIndex);
+                    }
+                    else if (operandSize == 1)
+                    {
+                        IL.Emit(originalOp, (byte)originalIndex);
+                    }
+                    else
+                    {
+                        IL.Emit(originalOp);
+                    }
+                }
+                else
+                {
+                    if (mappedIndex < 0)
+                        throw new InvalidOperationException("Ungültiger Parameterindex.");
+                    IL.Emit(opcode, (byte)mappedIndex);
+                }
                 return true;
             }
 

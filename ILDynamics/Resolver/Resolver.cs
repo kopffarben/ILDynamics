@@ -69,9 +69,9 @@ namespace ILDynamics.Resolver
                 {
                     if (f is Filters.CaptureToStaticTransformer)
                     {
-                        var extra = Filters.CaptureToStaticTransformer.GetCapturedFieldType(m);
-                        if (extra != null)
-                            args = args.Concat(new[] { extra }).ToArray();
+                        var extras = Filters.CaptureToStaticTransformer.GetCapturedFieldTypes(m);
+                        if (extras.Length > 0)
+                            args = args.Concat(extras).ToArray();
                     }
                 }
             }
