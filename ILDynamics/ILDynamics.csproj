@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Description>A Library for dynamic method generation!</Description>
     <PackageProjectUrl>https://github.com/faruknane/ILDynamics</PackageProjectUrl>
@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ICSharpCode.Decompiler" Version="8.1.0" />
+    <PackageReference Include="ICSharpCode.Decompiler" Version="9.1.0.7988" />
   </ItemGroup>
 
 </Project>
