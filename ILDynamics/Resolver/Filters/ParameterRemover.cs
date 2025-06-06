@@ -11,22 +11,34 @@ using System.Threading.Tasks;
 
 namespace ILDynamics.Resolver.Filters
 {
+    /// <summary>
+    /// Filter that removes parameters from method calls.
+    /// </summary>
     public class ParameterRemover : Filter
     {
         public int[] NewIndices;
         public bool[] RemoveIndices;
 
+        /// <summary>
+        /// Initializes the remover for a method and indices to remove.
+        /// </summary>
         public ParameterRemover(MethodInfo info, ILGenerator il, params int[] indices)
         {
             this.SetNewIndices(indices);
             this.Initialize(info, il);
         }
 
+        /// <summary>
+        /// Creates a remover configured with indices but not yet initialized.
+        /// </summary>
         public ParameterRemover(params int[] indices)
         {
             this.SetNewIndices(indices);
         }
 
+        /// <summary>
+        /// Computes mapping arrays based on indices to remove.
+        /// </summary>
         private void SetNewIndices(params int[] indices)
         {
             Array.Sort(indices);
@@ -48,6 +60,9 @@ namespace ILDynamics.Resolver.Filters
                     NewIndices[i] = (i > 0 ? NewIndices[i - 1] : -1) + 1;
             }
         }
+        /// <summary>
+        /// Maps the original parameter index to the new index.
+        /// </summary>
         public int GetIndex(int index)
         {
             if (NewIndices.Length <= index)
@@ -59,6 +74,9 @@ namespace ILDynamics.Resolver.Filters
             return NewIndices[index];
         }
 
+        /// <summary>
+        /// Adjusts argument opcodes to account for removed parameters.
+        /// </summary>
         public override bool Apply(OpCode code, int operandsize, Span<byte> operands)
         {
             if (ILHelper.IsArgS(code))
@@ -89,7 +107,7 @@ namespace ILDynamics.Resolver.Filters
 
             return true;
         }
-        
+
     }
 
 }

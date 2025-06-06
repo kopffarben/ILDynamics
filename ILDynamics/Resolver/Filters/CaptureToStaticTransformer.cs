@@ -17,6 +17,9 @@ using ILDynamics.Resolver.Filters;
 namespace ILDynamics.Resolver.Filters
 {
     /// <summary>
+    /// Filter that converts captured variables to static parameters.
+    /// </summary>
+    /// <summary>
     /// Ein Filter, der eine Methode aus einer Closure-Klasse (capturing Lambda-Instanzmethode)
     /// in eine Non-Capturing-Static-Methode transformiert. Dabei wird das erfasste Feld als
     /// zusätzlicher letzten Parameter angenommen und alle Ldfld/Zugriffe auf das Feld durch Ldarg ersetzt.
@@ -27,6 +30,9 @@ namespace ILDynamics.Resolver.Filters
         private int _extraParamStartIndex;
         private bool _removeInstanceArg;
 
+        /// <summary>
+        /// Returns the types of captured fields for the given closure method.
+        /// </summary>
         public static Type[] GetCapturedFieldTypes(MethodInfo info)
         {
             var closureType = info.DeclaringType;
@@ -37,13 +43,22 @@ namespace ILDynamics.Resolver.Filters
             return fields.Select(f => f.FieldType).ToArray();
         }
 
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
         public CaptureToStaticTransformer() { }
 
+        /// <summary>
+        /// Constructs the transformer and initializes it for a method.
+        /// </summary>
         public CaptureToStaticTransformer(MethodInfo info, ILGenerator il)
         {
             this.Initialize(info, il);
         }
 
+        /// <summary>
+        /// Initializes the transformer for a specific method body.
+        /// </summary>
         public override void Initialize(MethodInfo info, ILGenerator il)
         {
             base.Initialize(info, il);
@@ -63,6 +78,9 @@ namespace ILDynamics.Resolver.Filters
             _extraParamStartIndex = Info.GetParameters().Length;
         }
 
+        /// <summary>
+        /// Applies transformations to replace captured accesses with parameters.
+        /// </summary>
         public override bool Apply(OpCode opcode, int operandSize, Span<byte> operands)
         {
             // 1. Überspringe ldarg.0 (Instance-Zugriff auf closure 'this')

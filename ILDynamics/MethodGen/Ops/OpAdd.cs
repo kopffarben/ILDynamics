@@ -7,14 +7,24 @@ using System.Threading.Tasks;
 
 namespace ILDynamics.MethodGen.Ops
 {
+    /// <summary>
+    /// Adds multiple values in IL.
+    /// </summary>
     public class OpAdd : ILOp
     {
         public ILOp[] Values;
-        public OpAdd(params ILOp[] values) 
+        /// <summary>
+        /// Initializes an addition operation for the provided operands.
+        /// </summary>
+        /// <param name="values">Operands to add.</param>
+        public OpAdd(params ILOp[] values)
         {
             this.Values = values;
         }
-        
+
+        /// <summary>
+        /// Emits IL that adds all operands together.
+        /// </summary>
         public override void Load(Method Method)
         {
             Values[0].Load(Method);
@@ -27,6 +37,9 @@ namespace ILDynamics.MethodGen.Ops
             }
         }
 
+        /// <summary>
+        /// Addition results cannot be stored directly.
+        /// </summary>
         public override void Store(Method Method)
         {
             throw new NotImplementedException();

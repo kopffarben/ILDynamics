@@ -5,6 +5,9 @@ using System.Reflection.Emit;
 
 namespace ILDynamics.MethodGen.IL
 {
+    /// <summary>
+    /// Enumerates IL opcodes.
+    /// </summary>
 
     public class ILPerformableOpCode
     {
@@ -29,7 +32,7 @@ namespace ILDynamics.MethodGen.IL
         {
             OpList = new List<ILPerformableOpCode>();
         }
-        
+
         public void Emit(OpCode op)
         {
             OpList.Add(new ILPerformableOpCode((ILGenerator il) =>
@@ -40,49 +43,56 @@ namespace ILDynamics.MethodGen.IL
 
         public void Emit(OpCode op, byte arg)
         {
-            OpList.Add(new ILPerformableOpCode((ILGenerator il) => {
+            OpList.Add(new ILPerformableOpCode((ILGenerator il) =>
+            {
                 il.Emit(op, arg);
             }));
         }
 
         public void Emit(OpCode op, int arg)
         {
-            OpList.Add(new ILPerformableOpCode((ILGenerator il) => {
+            OpList.Add(new ILPerformableOpCode((ILGenerator il) =>
+            {
                 il.Emit(op, arg);
             }));
         }
 
         public void Emit(OpCode op, short arg)
         {
-            OpList.Add(new ILPerformableOpCode((ILGenerator il) => {
+            OpList.Add(new ILPerformableOpCode((ILGenerator il) =>
+            {
                 il.Emit(op, arg);
             }));
         }
 
         public void Emit(OpCode op, double arg)
         {
-            OpList.Add(new ILPerformableOpCode((ILGenerator il) => {
+            OpList.Add(new ILPerformableOpCode((ILGenerator il) =>
+            {
                 il.Emit(op, arg);
             }));
         }
 
         public void Emit(OpCode op, MethodInfo arg)
         {
-            OpList.Add(new ILPerformableOpCode((ILGenerator il) => {
+            OpList.Add(new ILPerformableOpCode((ILGenerator il) =>
+            {
                 il.Emit(op, arg);
             }));
         }
 
         public void DeclareVariable(Type t)
         {
-            OpList.Add(new ILPerformableOpCode((ILGenerator il) => {
+            OpList.Add(new ILPerformableOpCode((ILGenerator il) =>
+            {
                 il.DeclareLocal(t);
             }));
         }
 
         public void DeclareVariable(Type t, bool pinned)
         {
-            OpList.Add(new ILPerformableOpCode((ILGenerator il) => {
+            OpList.Add(new ILPerformableOpCode((ILGenerator il) =>
+            {
                 il.DeclareLocal(t, pinned);
             }));
         }

@@ -8,13 +8,22 @@ using ILDynamics.MethodGen.IL;
 
 namespace ILDynamics.MethodGen
 {
+    /// <summary>
+    /// Generates dynamic methods.
+    /// </summary>
     public class Method<T> : Method
     {
+        /// <summary>
+        /// Initializes a new generic method with the specified return type.
+        /// </summary>
         public Method() : base(typeof(T))
         {
 
         }
 
+        /// <summary>
+        /// Invokes the created method with the supplied arguments.
+        /// </summary>
         public new T this[params object[] objs]
         {
             get
@@ -38,6 +47,10 @@ namespace ILDynamics.MethodGen
 
         private MethodInfo methodInfo;
 
+        /// <summary>
+        /// Constructs a method builder for the given return type.
+        /// </summary>
+        /// <param name="returntype">Return type of the dynamic method.</param>
         public Method(Type returntype)
         {
             ParameterTypes = new List<Type>();
@@ -50,6 +63,9 @@ namespace ILDynamics.MethodGen
             this.ReturnType = returntype;
         }
 
+        /// <summary>
+        /// Invokes the dynamic method and returns its value.
+        /// </summary>
         public object this[params object[] objs]
         {
             get
@@ -58,6 +74,9 @@ namespace ILDynamics.MethodGen
             }
         }
 
+        /// <summary>
+        /// Generates the dynamic method and returns the <see cref="MethodInfo"/>.
+        /// </summary>
         public MethodInfo Create()
         {
             if (methodInfo != null)
@@ -85,15 +104,23 @@ namespace ILDynamics.MethodGen
             return methodInfo = dt.GetMethod("DynamicMethod");
         }
 
+        /// <summary>
+        /// Adds a new parameter to the method and returns its index.
+        /// </summary>
+        /// <param name="ilParameter">Parameter to add.</param>
         public virtual int NewParam(Param ilParameter)
         {
-            if(ParameterIndex.ContainsKey(ilParameter))
+            if (ParameterIndex.ContainsKey(ilParameter))
                 throw new Exception("You can't add the same parameter twice!");
 
             ParameterTypes.Add(ilParameter.Type);
             return ParameterIndex[ilParameter] = ParameterIndex.Count;
         }
 
+        /// <summary>
+        /// Declares a new local variable and returns its index.
+        /// </summary>
+        /// <param name="iLVariable">Variable to declare.</param>
         public virtual int NewVar(Var iLVariable)
         {
             if (VariableIndex.ContainsKey(iLVariable))

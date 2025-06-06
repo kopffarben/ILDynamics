@@ -12,10 +12,16 @@ using static ILDynamics.MethodGen.F;
 
 namespace ILDynamics
 {
+    /// <summary>
+    /// Demonstration program using ILDynamics.
+    /// </summary>
 
     public class Program
     {
         public static int experiment1 = 5;
+        /// <summary>
+        /// Sample method used by the dynamic example.
+        /// </summary>
         public static void Method1(int x)
         {
             experiment1 += x;
@@ -26,9 +32,9 @@ namespace ILDynamics
             Method f = new Method(null);
             Param p = new Param<int>();
             var seq = new OpSequence
-            (   
+            (
                 StaticCall(typeof(Program).GetMethod("Method1"), p),
-                StaticCall(typeof(Console).GetMethod("WriteLine", new Type[] { typeof(int)}), p),
+                StaticCall(typeof(Console).GetMethod("WriteLine", new Type[] { typeof(int) }), p),
                 Return()
             );
             seq.Load(f);

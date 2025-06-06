@@ -9,8 +9,16 @@ using System.Threading.Tasks;
 
 namespace ILDynamics.MethodGen.IL
 {
+    /// <summary>
+    /// Additional IL utilities.
+    /// </summary>
     public static partial class ILHelper
     {
+        /// <summary>
+        /// Determines the operand size for the given opcode.
+        /// </summary>
+        /// <param name="code">Opcode to inspect.</param>
+        /// <param name="arr">IL bytes containing operand if needed.</param>
         public static int GetOperandSize(this OpCode code, Span<byte> arr)
         {
             return code.OperandType switch
@@ -39,6 +47,9 @@ namespace ILDynamics.MethodGen.IL
             };
         }
 
+        /// <summary>
+        /// Checks if the opcode uses the short argument form.
+        /// </summary>
         public static bool IsArgS(OpCode code)
         {
             try
@@ -51,6 +62,9 @@ namespace ILDynamics.MethodGen.IL
             }
         }
 
+        /// <summary>
+        /// Checks if the opcode is an argument load using the long form.
+        /// </summary>
         public static bool IsArgNotS(OpCode code)
         {
             try
@@ -65,6 +79,9 @@ namespace ILDynamics.MethodGen.IL
             }
         }
 
+        /// <summary>
+        /// Determines whether the opcode loads a local variable using the short form.
+        /// </summary>
         public static bool IsLocS(OpCode code)
         {
             try
@@ -77,6 +94,9 @@ namespace ILDynamics.MethodGen.IL
             }
         }
 
+        /// <summary>
+        /// Determines whether the opcode loads a local variable using the long form.
+        /// </summary>
         public static bool IsLocNotS(OpCode code)
         {
             try
@@ -91,6 +111,9 @@ namespace ILDynamics.MethodGen.IL
             }
         }
 
+        /// <summary>
+        /// Returns true if the opcode ends with 's' and has an inline operand.
+        /// </summary>
         public static bool IsS(OpCode code)
         {
             try
@@ -103,15 +126,25 @@ namespace ILDynamics.MethodGen.IL
             }
         }
 
+        /// <summary>
+        /// Returns true if the opcode operates on method arguments.
+        /// </summary>
         public static bool IsArg(OpCode code)
         {
             return code.Name.Contains("arg");
         }
+        /// <summary>
+        /// Returns true if the opcode operates on local variables.
+        /// </summary>
         public static bool IsLoc(OpCode code)
         {
             return code.Name.Contains("loc");
         }
 
+        /// <summary>
+        /// Converts a numeric opcode to its short form counterpart.
+        /// </summary>
+        /// <param name="code">Opcode to convert.</param>
         public static (OpCode, int) ConvertToS(OpCode code)
         {
             string name = code.Name;
@@ -131,6 +164,11 @@ namespace ILDynamics.MethodGen.IL
             throw new Exception("Not Found!");
         }
 
+        /// <summary>
+        /// Converts a short form opcode back to the numeric variant.
+        /// </summary>
+        /// <param name="code">Short form opcode.</param>
+        /// <param name="arg">Numeric suffix.</param>
         public static OpCode ConvertFromS(OpCode code, int arg)
         {
             string name = code.Name;
