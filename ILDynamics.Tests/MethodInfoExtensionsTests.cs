@@ -44,5 +44,13 @@ namespace ILDynamics.Tests
             string sig = mi.GetDelegateSignature();
             Assert.AreEqual("Func<Int32> NoParams", sig);
         }
+
+        [TestMethod]
+        public void Test_DecompileToString()
+        {
+            MethodInfo mi = typeof(MethodInfoExtensionsTests).GetMethod(nameof(Add));
+            string code = mi.DecompileToString();
+            Assert.IsTrue(code.Contains("Add"));
+        }
     }
 }
